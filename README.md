@@ -1,1 +1,1 @@
-# RESTfulGo
+# RESTful API in Golang.
