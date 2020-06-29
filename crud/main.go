@@ -15,6 +15,7 @@ type Article struct {
 	Title   string `json:"Title"`
 	Desc    string `json:"Desc"`
 	Content string `json:"Content"`
+	Author  string `json:"Author"`
 }
 
 var Articles []Article
@@ -54,8 +55,37 @@ func createNewArticle(w http.ResponseWriter, r *http.Request) {
 
 	var article Article
 
-	json.Unmarshal(reqBody, &article)
+	err := json.Unmarshal(reqBody, &article)
+	if err != nil {
+		log.Fatalf("Failed to Unmarshal request body %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Create new Article Failed due to some error"))
+	}
 	Articles = append(Articles, article)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200  Create article successful"))
+	json.NewEncoder(w).Encode(article)
+}
+
+// createNewArticleV2() creates a new article
+func createNewArticleV2(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Endpoint Hit: createNewArticle")
+	reqBody, _ := ioutil.ReadAll(r.Body)
+
+	fmt.Fprintf(w, "%+v", string(reqBody))
+	fmt.Printf("Post Reuqst Body %v\n", string(reqBody))
+
+	var article Article
+
+	err := json.Unmarshal(reqBody, &article)
+	if err != nil {
+		log.Fatalf("Failed to Unmarshal request body %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("500 - Create new Article Failed due to some error"))
+	}
+	Articles = append(Articles, article)
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("200 - Create new Article Successful"))
 	json.NewEncoder(w).Encode(article)
 }
 
@@ -70,6 +100,12 @@ func deleteArticle(w http.ResponseWriter, r *http.Request) {
 	for index, article := range Articles {
 		if article.Id == id {
 			Articles = append(Articles[:index], Articles[index+1:]...)
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("200 - Delete article successful"))
+		} else {
+			log.Println("Record not found")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 - Delete article failed due to some error"))
 		}
 	}
 }
@@ -82,15 +118,25 @@ func updateArticle(w http.ResponseWriter, r *http.Request) {
 	reqBody, _ := ioutil.ReadAll(r.Body)
 
 	id := vars["id"]
-	for _, article := range Articles {
+	for index, article := range Articles {
 		if article.Id == id {
 			var article Article
 			json.Unmarshal(reqBody, &article)
-			Articles = append(Articles, article)
+			Articles[index].Id = article.Id
+			Articles[index].Title = article.Title
+			Articles[index].Desc = article.Desc
+			Articles[index].Content = article.Content
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("200  Update article successful"))
 			json.NewEncoder(w).Encode(article)
 
+		} else {
+			log.Println("Record not found")
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("500 - Delete article failed due to some error"))
 		}
 	}
+
 }
 
 //handleRequests() matches URL paths to defined function
@@ -98,12 +144,13 @@ func handleRequests() {
 
 	myRouter := mux.NewRouter().StrictSlash(true)
 
-	myRouter.HandleFunc("/article", createNewArticle).Methods("POST")
-	myRouter.HandleFunc("/article/{id}", updateArticle).Methods("PUT")
-	myRouter.HandleFunc("/", homePage)
-	myRouter.HandleFunc("/all", returnArticles)
-	myRouter.HandleFunc("/article/{id}", deleteArticle)
-	myRouter.HandleFunc("/article/{id}", returnSingleArticle)
+	myRouter.HandleFunc("/api/v1/article", createNewArticle).Methods("POST")
+	myRouter.HandleFunc("/api/v2/article", createNewArticleV2).Methods("POST")
+	myRouter.HandleFunc("/api/v1/article/{id}", updateArticle).Methods("PUT")
+	myRouter.HandleFunc("/api/v1", homePage)
+	myRouter.HandleFunc("/api/v1/article", returnArticles)
+	myRouter.HandleFunc("/api/v1/article/{id}", deleteArticle)
+	myRouter.HandleFunc("/api/v1/article/{id}", returnSingleArticle)
 
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
