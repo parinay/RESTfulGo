@@ -7,6 +7,6 @@ ADD . /app
 
 WORKDIR /app/crud
 
-RUN CGO_ENABLED=0  GOOS=linux  go build -o main .
+RUN CGO_ENABLED=0  GOOS=linux  go build -o main ./cmd/*.go
 
-CMD ["/app/main"]
+CMD ["/app/crud/main"]
