@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
 
 	"github.com/gorilla/mux"
 	// gin-swagger middleware
@@ -145,15 +146,27 @@ func updateArticle(w http.ResponseWriter, r *http.Request) {
 //handleRequests() matches URL paths to defined function
 func HandleRequests() {
 
+	var m sync.Mutex
+
 	myRouter := mux.NewRouter().StrictSlash(true)
 
+	m.Lock()
 	myRouter.HandleFunc("/api/v1/article", createNewArticle).Methods("POST")
+	m.Unlock()
+
+	m.Lock()
 	myRouter.HandleFunc("/api/v2/article", createNewArticleV2).Methods("POST")
+	m.Unlock()
+
+	m.Lock()
 	myRouter.HandleFunc("/api/v1/article/{id}", updateArticle).Methods("PUT")
+	m.Unlock()
 	myRouter.HandleFunc("/api/v1", homePage)
 	myRouter.HandleFunc("/api/v1/article", returnArticles)
-	myRouter.HandleFunc("/api/v1/article/{id}", deleteArticle)
 	myRouter.HandleFunc("/api/v1/article/{id}", returnSingleArticle)
+	m.Lock()
+	myRouter.HandleFunc("/api/v1/article/{id}", deleteArticle)
+	m.Unlock()
 
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }
