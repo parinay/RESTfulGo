@@ -40,6 +40,7 @@ build:
 docker:
 	@docker build --build-arg VERSION=$(GIT_COMMIT) -f $(DOCKERFILE) -t $(IMAGE):$(IMAGE_VERSION) .
 	@docker image prune -f  || true
+
 .PHONY: clean
 clean:
 	$(info Removing Docker image: $(CLIENT_IMAGE):$(IMAGE_VERSION))
