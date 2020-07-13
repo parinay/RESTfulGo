@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"sync"
 
 	"github.com/gorilla/mux"
 	// gin-swagger middleware
@@ -29,7 +28,8 @@ func isAuthorized(endpoint func(http.ResponseWriter, *http.Request)) http.Handle
 				if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 					return nil, fmt.Errorf("There was an error")
 				}
-				return signingKey, nil
+				byteSigningKey := []byte(signingKey)
+				return byteSigningKey, nil
 			})
 			if err != nil {
 				fmt.Fprintf(w, err.Error())
@@ -167,27 +167,17 @@ func updateArticle(w http.ResponseWriter, r *http.Request) {
 //handleRequests() matches URL paths to defined function
 func HandleRequests() {
 
-	var m sync.Mutex
-
 	myRouter := mux.NewRouter().StrictSlash(true)
 
-	m.Lock()
-	go myRouter.Handle("/api/v1/article", isAuthorized(createNewArticle)).Methods("POST")
-	m.Unlock()
+	myRouter.Handle("/api/v1/article", isAuthorized(createNewArticle)).Methods("POST")
 
-	m.Lock()
-	go myRouter.Handle("/api/v2/article", isAuthorized(createNewArticleV2)).Methods("POST")
-	m.Unlock()
+	myRouter.Handle("/api/v2/article", isAuthorized(createNewArticleV2)).Methods("POST")
 
-	m.Lock()
-	go myRouter.Handle("/api/v1/article/{id}", isAuthorized(updateArticle)).Methods("PUT")
-	m.Unlock()
+	myRouter.Handle("/api/v1/article/{id}", isAuthorized(updateArticle)).Methods("PUT")
 	myRouter.Handle("/api/v1", isAuthorized(homePage))
 	myRouter.Handle("/api/v1/article", isAuthorized(returnArticles)).Methods("GET")
 	myRouter.Handle("/api/v1/article/{id}", isAuthorized(returnSingleArticle)).Methods("GET")
-	m.Lock()
-	go myRouter.Handle("/api/v1/article/{id}", isAuthorized(deleteArticle)).Methods("DELETE")
-	m.Unlock()
+	myRouter.Handle("/api/v1/article/{id}", isAuthorized(deleteArticle)).Methods("DELETE")
 
 	log.Fatal(http.ListenAndServe(":10000", myRouter))
 }

@@ -13,6 +13,8 @@ import (
 
 var signingKey = os.Getenv("MY_JWT")
 
+// var signingKey = []byte("restfuleAPIinGO ")
+
 func GenerateJWT() (string, error) {
 	fmt.Println("In GenerateJWT")
 
@@ -23,12 +25,14 @@ func GenerateJWT() (string, error) {
 	claims["client"] = "RESTfulAPIinGO"
 	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
 
-	tokenString, err := token.SignedString(signingKey)
-	fmt.Printf("TokenString : %s", tokenString)
+	fmt.Printf("My Signing Key is %s\n", signingKey)
+	byteSigningKey := []byte(signingKey)
+	tokenString, err := token.SignedString(byteSigningKey)
+	// fmt.Printf("TokenString : %s", tokenString)
 
 	if err != nil {
-		log.Errorf("Something went wrong %v", err)
-		fmt.Printf("Something went wrong %v", err)
+		//		log.Errorf("Something went wrong %v", err)
+		fmt.Printf("Something went wrong %v\n", err)
 		return "", err
 	}
 
@@ -42,13 +46,15 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Printf("Failed to generate JWT with error %v", err)
-		fmt.Printf("Failed to generate JWT with error %v", err)
+		fmt.Printf("Failed to generate JWT with error %v\n", err)
 	}
 
 	client := &http.Client{}
-	req, _ := http.NewRequest("GET", "http://localhost:10000/api/v1", nil)
+	req, err := http.NewRequest("GET", "http://localhost:10000/api/v1/article", nil)
+	if err != nil {
+		fmt.Printf("New request failed with error: %v\n", err)
+	}
 	req.Header.Set("Token", validToken)
-
 	res, err := client.Do(req)
 
 	if err != nil {
@@ -59,18 +65,17 @@ func homePage(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		log.Errorf("Error reading the http response %v", err)
-		fmt.Printf("Error reading the http response %v", err)
+		fmt.Printf("Error reading the http response %v\n", err)
 	}
 	fmt.Fprintf(w, string(body))
 }
-func handleClientRequest() {
+func handleRequests() {
 	fmt.Println("In handleRequest")
-
 	http.HandleFunc("/", homePage)
-	// fmt.Println("Starting http server")
+
 	log.Fatal(http.ListenAndServe(":10001", nil))
 }
 func main() {
 	fmt.Println("In main")
-	handleClientRequest()
+	handleRequests()
 }
