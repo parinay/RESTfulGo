@@ -34,6 +34,7 @@ lint:
 .PHONY: build
 build:
 	@go build $(GO_BUILD_FLAGS) -v -o $(BUILD_PATH)/$(BIN) ./crud/cmd/main.go
+	@go build $(GO_BUILD_FLAGS) -v -o $(BUILD_PATH)/client ./crud/client/main.go
 
 .PHONY: docker
 docker:
@@ -45,3 +46,4 @@ clean:
 	@docker rmi -f $(shell docker images -q $(IMAGE):$(IMAGE_VERSION)) 2>/dev/null || true
 
 	rm -f  $(BUILD_PATH)/$(BIN)
+	rm -f  $(BUILD_PATH)/client
