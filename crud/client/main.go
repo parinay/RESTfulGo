@@ -23,7 +23,7 @@ func GenerateJWT() (string, error) {
 
 	claims["authorized"] = true
 	claims["client"] = "RESTfulAPIinGO"
-	claims["exp"] = time.Now().Add(time.Minute * 30).Unix()
+	claims["exp"] = time.Now().Add(time.Minute * 1440).Unix()
 
 	fmt.Printf("My Signing Key is %s\n", signingKey)
 	byteSigningKey := []byte(signingKey)

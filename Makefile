@@ -33,7 +33,7 @@ lint:
 
 .PHONY: build
 build:
-	@go build $(GO_BUILD_FLAGS) -v -o $(BUILD_PATH)/$(BIN) ./crud/cmd/main.go
+	@go build $(GO_BUILD_FLAGS) -v -o $(BUILD_PATH)/$(BIN) ./crud/server/main.go
 	@go build $(GO_BUILD_FLAGS) -v -o $(BUILD_PATH)/client ./crud/client/main.go
 
 .PHONY: docker
