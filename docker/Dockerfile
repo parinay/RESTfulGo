@@ -7,7 +7,7 @@ ADD . /app
 
 WORKDIR /app/crud
 
-RUN CGO_ENABLED=0  GOOS=linux  go build -o main ./cmd/*.go
+RUN CGO_ENABLED=0  GOOS=linux  go build -o main ./server/*.go
 
 
 FROM alpine:latest AS production
